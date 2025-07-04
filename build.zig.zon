@@ -8,6 +8,9 @@
             .url = "git+https://github.com/getsentry/sentry-native.git#ccef7125b3783210f44ee6b100df7278e6ba3eff",
             .hash = "N-V-__8AAJmoHgAPxgAObxk1ekBBdb0LSAf71bFKKpgSq5aS",
         },
+        .crashpad = .{
+            .path = "./crashpad_build",
+        },
     },
     .paths = .{
         "build.zig",

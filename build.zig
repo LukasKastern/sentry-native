@@ -3,16 +3,23 @@ const std = @import("std");
 // The version of the `sentry-native` SDK.
 const version: std.SemanticVersion = .{ .major = 0, .minor = 8, .patch = 1 };
 
+const Backend = enum {
+    None,
+    Inproc,
+    Crashpad,
+};
+
 pub fn build(b: *std.Build) void {
     // Import dependency.
     const upstream = b.dependency("sentry-native", .{});
+    const crashpad = b.dependency("crashpad", .{});
 
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
     // Add options which could be provided by the uses of this library.
     const linkage = b.option(std.builtin.LinkMode, "linkage", "Link mode of the sentry_native library (default: static)") orelse .static;
-    const with_in_proc_backend = b.option(bool, "inproc", "Enable inproc backend (default: true)") orelse true;
+    const backend = b.option(Backend, "backend", "Backend to use (default: Crashpad)") orelse .Crashpad;
     const with_zlib = b.option(bool, "zlib", "Enable transport compression (default: false)") orelse false;
 
     // Prepare the build of the static library.
@@ -50,10 +57,22 @@ pub fn build(b: *std.Build) void {
     sentry_native.addCSourceFiles(.{ .files = sentry_src, .root = upstream.path(""), .flags = cflags });
 
     // Enable inproc backend.
-    if (with_in_proc_backend) {
-        sentry_native.addCSourceFile(.{ .file = upstream.path("src/backends/sentry_backend_inproc.c"), .flags = cflags });
-    } else {
-        sentry_native.addCSourceFile(.{ .file = upstream.path("src/backends/sentry_backend_none.c"), .flags = cflags });
+    switch (backend) {
+        .None => {
+            sentry_native.addCSourceFile(.{ .file = upstream.path("src/backends/sentry_backend_none.c"), .flags = cflags });
+        },
+        .Crashpad => {
+            sentry_native.addCSourceFile(.{ .file = upstream.path("src/backends/sentry_backend_crashpad.cpp"), .flags = cflags });
+            sentry_native.linkLibCpp();
+
+            sentry_native.linkLibrary(crashpad.artifact("crashpad_client"));
+
+            const crashpad_handler = crashpad.artifact("crashpad_handler");
+            b.installArtifact(crashpad_handler);
+        },
+        .Inproc => {
+            sentry_native.addCSourceFile(.{ .file = upstream.path("src/backends/sentry_backend_inproc.c"), .flags = cflags });
+        },
     }
 
     switch (target.result.os.tag) {

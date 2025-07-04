@@ -1,0 +1,27 @@
+.{
+    .name = .crashpad,
+    .version = "0.1.0",
+    .fingerprint = 0xa131b7c84dfd50b5,
+    .minimum_zig_version = "0.14.0",
+    .dependencies = .{
+        .crashpad = .{
+            .url = "git+https://github.com/getsentry/crashpad.git#e24b0f9e760e27464fe2ed30fdd7be45a27a67ad",
+            .hash = "N-V-__8AAKb9fADm95FzV5fdE16Q8DgqmWkdugyKKyRUQURa",
+        },
+        .zlib = .{
+            .url = "https://github.com/allyourcodebase/zlib/archive/refs/tags/1.3.1.tar.gz",
+            .hash = "zlib-1.3.1-AAAAACEMAAA0qyoSrfgBb_p25ItL4yRf_TBRk-26TYMF",
+        },
+        .minichromium = .{
+            .url = "git+https://github.com/getsentry/mini_chromium.git#fd75723d16e99fb1e6d1487c4f278a5ce618fdf0",
+            .hash = "N-V-__8AAIxeCQBdfMUKqrb0giaDqb1NXYmesXvsIRNXUzTs",
+        },
+    },
+    .paths = .{
+        "build.zig",
+        "build.zig.zon",
+        "src",
+        "README.md",
+        "LICENSE",
+    },
+}
