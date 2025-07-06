@@ -11,11 +11,14 @@ const Backend = enum {
 
 pub fn build(b: *std.Build) void {
     // Import dependency.
-    const upstream = b.dependency("sentry-native", .{});
-    const crashpad = b.dependency("crashpad", .{});
-
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
+
+    const upstream = b.dependency("sentry-native", .{});
+    const crashpad = b.dependency("crashpad", .{
+        .target = target,
+        .optimize = optimize,
+    });
 
     // Add options which could be provided by the uses of this library.
     const linkage = b.option(std.builtin.LinkMode, "linkage", "Link mode of the sentry_native library (default: static)") orelse .static;
@@ -29,6 +32,7 @@ pub fn build(b: *std.Build) void {
             .target = target,
             .optimize = optimize,
         }),
+
         .version = version,
         .linkage = linkage,
     });
@@ -67,6 +71,7 @@ pub fn build(b: *std.Build) void {
 
             sentry_native.linkLibrary(crashpad.artifact("crashpad_client"));
 
+            // Install crashpad_handler
             const crashpad_handler = crashpad.artifact("crashpad_handler");
             b.installArtifact(crashpad_handler);
         },

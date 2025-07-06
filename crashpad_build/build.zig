@@ -63,32 +63,6 @@ pub fn build(b: *std.Build) !void {
         crashpad_handler_lib.linkLibrary(minichromium);
     }
 
-    const crashpad_client = b.addLibrary(.{
-        .name = "crashpad_client",
-        .root_module = b.createModule(.{
-            .target = target,
-            .optimize = optimize,
-        }),
-        .linkage = .static,
-    });
-
-    // Crashpad client base config
-    {
-        crashpad_client.linkLibrary(minichromium);
-
-        crashpad_client.linkLibC();
-        crashpad_client.linkLibCpp();
-
-        crashpad_client.installHeadersDirectory(upstream.path("client"), "client", .{ .include_extensions = &.{".h"} });
-        crashpad_client.installHeadersDirectory(upstream.path("util"), "util", .{ .include_extensions = &.{".h"} });
-        crashpad_client.installHeadersDirectory(minichromium_upstream.path("base"), "base", .{ .include_extensions = &.{".h"} });
-        crashpad_client.installHeader(minichromium_upstream.path("build/build_config.h"), "build/build_config.h");
-        crashpad_client.installHeader(minichromium_upstream.path("build/buildflag.h"), "build/buildflag.h");
-        crashpad_client.installHeader(upstream.path("third_party/mini_chromium/build/chromeos_buildflags.h"), "build/chromeos_buildflags.h");
-
-        addSources(upstream_root, b, target, crashpad_client, crashpad_client_src);
-    }
-
     // Crashpad minidump lib
     const crashpad_minidump_lib = b.addLibrary(.{
         .name = "crashpad_minidump_lib",
@@ -140,6 +114,34 @@ pub fn build(b: *std.Build) !void {
                 .root = upstream.path(""),
             });
         }
+    }
+
+    const crashpad_client = b.addLibrary(.{
+        .name = "crashpad_client",
+        .root_module = b.createModule(.{
+            .target = target,
+            .optimize = optimize,
+        }),
+        .linkage = .static,
+    });
+
+    // Crashpad client base config
+    {
+        crashpad_client.linkLibrary(minichromium);
+
+        crashpad_client.linkLibC();
+        crashpad_client.linkLibCpp();
+
+        crashpad_client.installHeadersDirectory(upstream.path("client"), "client", .{ .include_extensions = &.{".h"} });
+        crashpad_client.installHeadersDirectory(upstream.path("util"), "util", .{ .include_extensions = &.{".h"} });
+        crashpad_client.installHeadersDirectory(minichromium_upstream.path("base"), "base", .{ .include_extensions = &.{".h"} });
+        crashpad_client.installHeader(minichromium_upstream.path("build/build_config.h"), "build/build_config.h");
+        crashpad_client.installHeader(minichromium_upstream.path("build/buildflag.h"), "build/buildflag.h");
+        crashpad_client.installHeader(upstream.path("third_party/mini_chromium/build/chromeos_buildflags.h"), "build/chromeos_buildflags.h");
+
+        crashpad_client.linkLibrary(crashpad_util_lib);
+
+        addSources(upstream_root, b, target, crashpad_client, crashpad_client_src);
     }
 
     // Crashpad snapshot lib

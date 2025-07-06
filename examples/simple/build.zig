@@ -6,7 +6,8 @@ pub fn build(b: *std.Build) void {
 
     const sentry = b.dependency("sentry_native", .{
         .target = target,
-        .optimize = optimize,
+        .optimize = .ReleaseFast,
+        .winhttp = true,
     });
 
     const exe_mod = b.createModule(.{
@@ -20,8 +21,12 @@ pub fn build(b: *std.Build) void {
         .root_module = exe_mod,
     });
 
+    exe.linkSystemLibrary("winhttp");
+
     exe.linkLibrary(sentry.artifact("sentry"));
     exe.root_module.addImport("sentry", sentry.module("sentry"));
+
+    b.installArtifact(sentry.artifact("crashpad_handler"));
 
     b.installArtifact(exe);
 

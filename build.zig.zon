@@ -18,5 +18,6 @@
         "src",
         "README.md",
         "LICENSE",
+        "crashpad_build",
     },
 }
