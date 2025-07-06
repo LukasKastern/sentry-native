@@ -132,7 +132,7 @@ pub fn build(b: *std.Build) !void {
             crashpad_handler_lib.linkSystemLibrary("winhttp");
 
             try addMasmFiles(crashpad_util_lib, .{
-                .target = target.result,
+                .target = target,
                 .files = &.{
                     "util/misc/capture_context_win.asm",
                     "util/win/safe_terminate_process.asm",
@@ -158,8 +158,10 @@ pub fn build(b: *std.Build) !void {
         addSources(upstream_root, b, target, crashpad_snapshot_lib, crashpad_snapshot_src);
         crashpad_snapshot_lib.linkLibrary(minichromium);
 
-        crashpad_snapshot_lib.linkSystemLibrary("dbghelp");
-        crashpad_snapshot_lib.linkSystemLibrary("powrprof");
+        if (target.result.os.tag == .windows) {
+            crashpad_snapshot_lib.linkSystemLibrary("dbghelp");
+            crashpad_snapshot_lib.linkSystemLibrary("powrprof");
+        }
     }
 
     // Crashpad tool lib
@@ -216,36 +218,23 @@ pub fn build(b: *std.Build) !void {
 }
 
 const AddMasmFilesOptions = struct {
-    target: std.Target,
+    target: std.Build.ResolvedTarget,
     root: ?std.Build.LazyPath,
     files: []const []const u8,
     flags: []const []const u8 = &.{},
 };
 
-fn getNasmFormat(target: std.Target) []const u8 {
-    switch (target.os.tag) {
-        .windows => switch (target.cpu.arch) {
-            .x86_64 => return "win64",
-            .x86 => return "win32",
-            else => return "bin",
-        },
-        .linux => switch (target.cpu.arch) {
-            .x86_64 => return "elf64",
-            .x86 => return "elf32",
-            else => return "bin",
-        },
-        .macos => switch (target.cpu.arch) {
-            .x86_64 => return "macho64",
-            .x86 => return "macho",
-            else => return "bin",
-        },
-        else => return "bin",
-    }
-}
-
 fn addMasmFiles(compile: *std.Build.Step.Compile, options: AddMasmFilesOptions) !void {
     const b = compile.step.owner;
     const root = options.root orelse b.path("");
+
+    if (options.target.result.os.tag != .windows) {
+        return error.MasmIsWindowsOnly;
+    }
+
+    // builtin.target;
+
+    const jwasm = b.dependency("jwasm", .{});
 
     for (options.files) |file| {
         std.debug.assert(!std.fs.path.isAbsolute(file));
@@ -253,62 +242,78 @@ fn addMasmFiles(compile: *std.Build.Step.Compile, options: AddMasmFilesOptions) 
 
         const file_stem = std.fs.path.stem(file);
 
-        const cmd = switch (builtin.os.tag) {
-            .windows => blk: {
-                var env_var: []const u8 = undefined;
-                const ml = ml_blk: switch (options.target.cpu.arch) {
-                    .x86 => {
-                        env_var = "ML_PATH";
-                        break :ml_blk "ml.exe";
-                    },
-                    else => {
-                        env_var = "ML_64_PATH";
-                        break :ml_blk "ml64.exe";
-                    },
-                };
+        const jwasm_binary = jwasm.artifact("jwasm");
 
-                // Find ml executable
-                const ml_exe = ml_blk: {
-                    const ml_env_path = b.graph.env_map.get(env_var);
-                    if (ml_env_path) |env| {
-                        break :ml_blk env;
-                    }
+        const run_jwasm = b.addRunArtifact(jwasm_binary);
 
-                    break :ml_blk b.findProgram(&.{ml}, &.{}) catch {
-                        std.log.err("failed to find {s} executable. Please provide it in %PATH%, %ML_PATH% or %ML_64_PATH%", .{ml});
-                        return error.MLNotFound;
-                    };
-                };
+        run_jwasm.addArg("-nologo");
+        run_jwasm.addArg("-c");
+        run_jwasm.addArg("-win64");
 
-                const step = b.addSystemCommand(&.{ml_exe});
-                step.addArg("/nologo");
-                step.addArg("/c");
+        if (options.target.result.abi != .msvc) {
+            run_jwasm.addArg("-D__MINGW32__");
+        }
 
-                if (options.target.abi != .msvc) {
-                    step.addArg("/D__MINGW32__");
-                }
+        const obj = run_jwasm.addPrefixedOutputFileArg("-Fo", b.fmt("{s}.obj", .{file_stem}));
+        run_jwasm.addFileArg(src_file);
+        for (options.flags) |flag| run_jwasm.addArg(flag);
 
-                const obj = step.addPrefixedOutputFileArg("/Fo", b.fmt("{s}.obj", .{file_stem}));
-                step.addFileArg(src_file);
-                for (options.flags) |flag| step.addArg(flag);
-                break :blk .{ step, obj };
-            },
-            else => blk: {
-                const step = b.addSystemCommand(&.{"uasm"});
-                step.addArg("-nologo");
-                step.addArg("-c");
-                step.addArg("-win64"); // or "-win32" for 32-bit
-                const obj = step.addPrefixedOutputFileArg("-Fo", b.fmt("{s}.obj", .{file_stem}));
-                step.addFileArg(src_file);
-                for (options.flags) |flag| step.addArg(flag);
-
-                break :blk .{ step, obj };
-            },
-        };
-
-        const obj = cmd[1];
         compile.addObjectFile(obj);
     }
+
+    // const cmd = switch (builtin.os.tag) {
+    //     .windows => blk: {
+    //         // var env_var: []const u8 = undefined;
+    //         // const ml = ml_blk: switch (options.target.cpu.arch) {
+    //         //     .x86 => {
+    //         //         env_var = "ML_PATH";
+    //         //         break :ml_blk "ml.exe";
+    //         //     },
+    //         //     else => {
+    //         //         env_var = "ML_64_PATH";
+    //         //         break :ml_blk "ml64.exe";
+    //         //     },
+    //         // };
+
+    //         // // Find ml executable
+    //         // const ml_exe = ml_blk: {
+    //         //     const ml_env_path = b.graph.env_map.get(env_var);
+    //         //     if (ml_env_path) |env| {
+    //         //         break :ml_blk env;
+    //         //     }
+
+    //         //     break :ml_blk b.findProgram(&.{ml}, &.{}) catch {
+    //         //         std.log.err("failed to find {s} executable. Please provide it in %PATH%, %ML_PATH% or %ML_64_PATH%", .{ml});
+    //         //         return error.MLNotFound;
+    //         //     };
+    //         // };
+
+    //         // const step = b.addSystemCommand(&.{ml_exe});
+    //         // step.addArg("/nologo");
+    //         // step.addArg("/c");
+
+    //         // if (options.target.abi != .msvc) {
+    //         //     step.addArg("/D__MINGW32__");
+    //         // }
+
+    //         // const obj = step.addPrefixedOutputFileArg("/Fo", b.fmt("{s}.obj", .{file_stem}));
+    //         // step.addFileArg(src_file);
+    //         // for (options.flags) |flag| step.addArg(flag);
+    //         // break :blk .{ step, obj };
+    //     },
+    //     else => blk: {
+    //         const step = b.addSystemCommand(&.{"uasm"});
+    //         step.addArg("-nologo");
+    //         step.addArg("-c");
+    //         step.addArg("-win64"); // or "-win32" for 32-bit
+    //         const obj = step.addPrefixedOutputFileArg("-Fo", b.fmt("{s}.obj", .{file_stem}));
+    //         step.addFileArg(src_file);
+    //         for (options.flags) |flag| step.addArg(flag);
+
+    //         break :blk .{ step, obj };
+    //     },
+    // };
+
 }
 
 pub fn addSources(root: std.Build.LazyPath, b: *std.Build, target: std.Build.ResolvedTarget, compile: *std.Build.Step.Compile, definition: CompileDefinition) void {

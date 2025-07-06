@@ -13,8 +13,12 @@
             .hash = "zlib-1.3.1-AAAAACEMAAA0qyoSrfgBb_p25ItL4yRf_TBRk-26TYMF",
         },
         .minichromium = .{
-            .url = "git+https://github.com/getsentry/mini_chromium.git#fd75723d16e99fb1e6d1487c4f278a5ce618fdf0",
-            .hash = "N-V-__8AAIxeCQBdfMUKqrb0giaDqb1NXYmesXvsIRNXUzTs",
+            .url = "git+https://github.com/getsentry/mini_chromium.git#3f2f84dac44888f47f690dfd5bc6ec28b0f37adc",
+            .hash = "N-V-__8AAIxeCQAr_hOnd_fNbfybYkbpp7I3jQE5Ln3uICb-",
+        },
+        .jwasm = .{
+            .url = "https://github.com/LukasKastern/JWasm/archive/381e0d1b24d3f7233d77731929ff8abcc6f2591b.tar.gz",
+            .hash = "N-V-__8AABkePgBp0WGwridKPlToXWkvkC4LvH64XH7DaBf3",
         },
     },
     .paths = .{
