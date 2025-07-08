@@ -74,6 +74,11 @@ pub fn build(b: *std.Build) void {
             // Install crashpad_handler
             const crashpad_handler = crashpad.artifact("crashpad_handler");
             b.installArtifact(crashpad_handler);
+
+            if (target.result.os.tag == .windows) {
+                const wer_module = crashpad.artifact("crashpad_wer");
+                b.installArtifact(wer_module);
+            }
         },
         .Inproc => {
             sentry_native.addCSourceFile(.{ .file = upstream.path("src/backends/sentry_backend_inproc.c"), .flags = cflags });
