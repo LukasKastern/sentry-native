@@ -223,20 +223,14 @@ pub fn build(b: *std.Build) !void {
                 .optimize = optimize,
             }),
         });
-        addSources(upstream_root, b, target, crashpad_wer_module, crashpad_wer_module_src);
+        addSources(b.path(""), b, target, crashpad_wer_module, crashpad_wer_module_src);
         b.installArtifact(crashpad_wer_module);
-
-        crashpad_wer_module.addCSourceFile(.{
-            .file = b.path("crashpad_wer_main.cc"),
-            .flags = &.{
-                "-municode",
-            },
-            .language = .cpp,
-        });
 
         crashpad_wer_module.linkLibC();
         crashpad_wer_module.linkLibCpp();
         crashpad_wer_module.linkLibrary(minichromium);
+
+        crashpad_wer_module.addIncludePath(upstream_root);
     }
 
     b.installArtifact(crashpad_client);
@@ -751,6 +745,7 @@ const crashpad_util_src = CompileDefinition{
 const crashpad_wer_module_src = CompileDefinition{
     .general = &.{
         "handler/win/wer/crashpad_wer.cc",
+        "handler/win/wer/crashpad_wer_main.cc",
         // "handler/win/wer/crashpad_wer.def",
     },
     .win = &.{},
