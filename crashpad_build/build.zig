@@ -215,6 +215,30 @@ pub fn build(b: *std.Build) !void {
         crashpad_handler.subsystem = .Windows;
     }
 
+    if (target.result.os.tag == .windows) {
+        const crashpad_wer_module = b.addSharedLibrary(.{
+            .name = "crashpad_wer",
+            .root_module = b.createModule(.{
+                .target = target,
+                .optimize = optimize,
+            }),
+        });
+        addSources(upstream_root, b, target, crashpad_wer_module, crashpad_wer_module_src);
+        b.installArtifact(crashpad_wer_module);
+
+        crashpad_wer_module.addCSourceFile(.{
+            .file = b.path("crashpad_wer_main.cc"),
+            .flags = &.{
+                "-municode",
+            },
+            .language = .cpp,
+        });
+
+        crashpad_wer_module.linkLibC();
+        crashpad_wer_module.linkLibCpp();
+        crashpad_wer_module.linkLibrary(minichromium);
+    }
+
     b.installArtifact(crashpad_client);
     b.installArtifact(crashpad_handler);
 }
@@ -722,4 +746,18 @@ const crashpad_util_src = CompileDefinition{
     },
     .include_directories = &.{"."},
     .language = .cpp,
+};
+
+const crashpad_wer_module_src = CompileDefinition{
+    .general = &.{
+        "handler/win/wer/crashpad_wer.cc",
+        // "handler/win/wer/crashpad_wer.def",
+    },
+    .win = &.{},
+    .unix = &.{},
+    .language = .cpp,
+    .flags = &.{
+        "-municode",
+    },
+    .include_directories = &.{"."},
 };
