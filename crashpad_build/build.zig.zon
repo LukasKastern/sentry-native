@@ -20,6 +20,10 @@
             .url = "https://github.com/LukasKastern/JWasm/archive/381e0d1b24d3f7233d77731929ff8abcc6f2591b.tar.gz",
             .hash = "N-V-__8AABkePgBp0WGwridKPlToXWkvkC4LvH64XH7DaBf3",
         },
+        .curl = .{
+            .url = "git+https://github.com/allyourcodebase/curl#b699f96a989ca2ae2d62f9774f436088ed47ea03",
+            .hash = "curl-8.13.0-mFDAWCXtAAAoC5sjcLO6XRYP-ljMSSWdpiYcVnxlt5GN",
+        },
     },
     .paths = .{
         "build.zig",

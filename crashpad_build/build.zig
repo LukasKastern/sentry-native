@@ -59,6 +59,8 @@ pub fn build(b: *std.Build) !void {
         crashpad_handler_lib.linkLibC();
         crashpad_handler_lib.linkLibCpp();
 
+        crashpad_handler_lib.linkLibrary(zlib_dep.artifact("z"));
+
         addSources(upstream_root, b, target, crashpad_handler_lib, crashpad_handler_lib_src);
         crashpad_handler_lib.linkLibrary(minichromium);
     }
@@ -97,8 +99,14 @@ pub fn build(b: *std.Build) !void {
         crashpad_util_lib.linkLibrary(minichromium);
         crashpad_util_lib.linkLibrary(zlib_dep.artifact("z"));
 
+        if (target.result.os.tag == .linux) {
+            crashpad_util_lib.addAssemblyFile(upstream_root.path(b, "util/misc/capture_context_linux.S"));
+        }
+
         addSources(upstream_root, b, target, crashpad_util_lib, crashpad_util_src);
         crashpad_util_lib.linkLibrary(minichromium);
+
+        crashpad_util_lib.addIncludePath(b.path(""));
 
         if (target.result.os.tag == .windows) {
             crashpad_handler_lib.linkSystemLibrary("version");
@@ -113,6 +121,21 @@ pub fn build(b: *std.Build) !void {
                 },
                 .root = upstream.path(""),
             });
+        }
+
+        if (target.result.os.tag == .linux) {
+            const curl_dependency = b.dependency("curl", .{
+                .target = target,
+                .optimize = optimize,
+                .libpsl = false,
+                .libssh2 = false,
+                .libidn2 = false,
+                .nghttp2 = false,
+                .@"disable-ldap" = true,
+            });
+
+            const lib_curl = @import("curl").artifact(curl_dependency, .lib);
+            crashpad_util_lib.linkLibrary(lib_curl);
         }
     }
 
@@ -140,8 +163,13 @@ pub fn build(b: *std.Build) !void {
         crashpad_client.installHeader(upstream.path("third_party/mini_chromium/build/chromeos_buildflags.h"), "build/chromeos_buildflags.h");
 
         crashpad_client.linkLibrary(crashpad_util_lib);
+        crashpad_client.addIncludePath(b.path(""));
 
         addSources(upstream_root, b, target, crashpad_client, crashpad_client_src);
+
+        if (target.result.os.tag == .linux) {
+            crashpad_client.addAssemblyFile(upstream_root.path(b, "client/crashpad_info_note.S"));
+        }
     }
 
     // Crashpad snapshot lib
@@ -336,12 +364,12 @@ fn addMasmFiles(compile: *std.Build.Step.Compile, options: AddMasmFilesOptions) 
 
 }
 
-pub fn addSources(root: std.Build.LazyPath, b: *std.Build, target: std.Build.ResolvedTarget, compile: *std.Build.Step.Compile, definition: CompileDefinition) void {
+pub fn addSources(root: std.Build.LazyPath, b: *std.Build, target: std.Build.ResolvedTarget, compile: *std.Build.Step.Compile, comptime definition: CompileDefinition) void {
     for (definition.general) |file| {
         compile.addCSourceFile(.{
             .file = root.path(b, file),
             .language = definition.language,
-            .flags = definition.flags,
+            .flags = definition.flags ++ global_flags,
         });
     }
 
@@ -352,7 +380,7 @@ pub fn addSources(root: std.Build.LazyPath, b: *std.Build, target: std.Build.Res
                 compile.addCSourceFile(.{
                     .file = root.path(b, file),
                     .language = definition.language,
-                    .flags = definition.flags,
+                    .flags = definition.flags ++ global_flags,
                 });
             }
         },
@@ -361,17 +389,35 @@ pub fn addSources(root: std.Build.LazyPath, b: *std.Build, target: std.Build.Res
                 compile.addCSourceFile(.{
                     .file = root.path(b, file),
                     .language = definition.language,
-                    .flags = definition.flags,
+                    .flags = definition.flags ++ global_flags,
                 });
             }
         },
         else => {},
     }
 
+    if (target.result.os.tag == .windows) {
+        compile.addIncludePath(root.path(b, "compat/mingw/"));
+    } else {
+        compile.addIncludePath(root.path(b, "compat/non_win/"));
+        compile.addIncludePath(root.path(b, "compat/linux/"));
+    }
+
     for (definition.include_directories) |include| {
         compile.addIncludePath(root.path(b, include));
     }
 }
+
+const global_flags: []const []const u8 = &.{
+    "-D_FILE_OFFSET_BITS=64",
+    "-D_LARGEFILE64_SOURCE",
+    "-D_LARGEFILE_SOURCE",
+    "-DCRASHPAD_FLOCK_ALWAYS_SUPPORTED=1",
+    "-municode",
+    "-DCRASHPAD_LSS_SOURCE_EMBEDDED",
+    "-DCRASHPAD_ZLIB_SOURCE_EXTERNAL=1",
+    "-DZLIB_CONST",
+};
 
 const CompileDefinition = struct {
     general: []const []const u8,
@@ -395,16 +441,13 @@ const crashpad_client_src = CompileDefinition{
         "client/crashpad_client_linux.cc",
         "client/client_argv_handling.cc",
         "client/crash_report_database_generic.cc",
-        "client/crashpad_info_note.S",
     },
     .win = &.{
         "client/crash_report_database_win.cc",
         "client/crashpad_client_win.cc",
     },
     .flags = &.{
-        "-municode",
         "-std=c++17",
-        "-DCRASHPAD_FLOCK_ALWAYS_SUPPORTED=1",
     },
     .include_directories = &.{
         ".",
@@ -454,7 +497,7 @@ const minichromimum_src = CompileDefinition{
         "-D_HAS_EXCEPTIONS=0",
         "-D_UNICODE",
         "-std=c++20",
-        "-municode",
+
         "-Wno-format",
         "-Wno-unknown-pragmas",
     },
@@ -495,9 +538,7 @@ const crashpad_handler_src = CompileDefinition{
         "client/pthread_create_linux.cc",
     },
     .language = .cpp,
-    .flags = &.{
-        "-municode",
-    },
+    .flags = &.{},
     .include_directories = &.{},
 };
 
@@ -534,7 +575,7 @@ const crashpad_minidump_src = CompileDefinition{
     .unix = &.{},
     .flags = &.{},
     .language = .cpp,
-    .include_directories = &.{ ".", "compat/mingw/" },
+    .include_directories = &.{"."},
 };
 
 const crashpad_snapshot_src = CompileDefinition{
@@ -597,10 +638,8 @@ const crashpad_snapshot_src = CompileDefinition{
         "snapshot/elf/elf_symbol_table_reader.cc",
         "snapshot/elf/module_snapshot_elf.cc",
     },
-    .flags = &.{
-        "-municode",
-    },
-    .include_directories = &.{ ".", "compat/mingw/" },
+    .flags = &.{},
+    .include_directories = &.{"."},
 };
 
 const crashpad_tool_src = CompileDefinition{
@@ -610,7 +649,6 @@ const crashpad_tool_src = CompileDefinition{
     .win = &.{},
     .unix = &.{},
     .flags = &.{
-        "-municode",
         "-std=c++17",
     },
     .include_directories = &.{"."},
@@ -725,7 +763,7 @@ const crashpad_util_src = CompileDefinition{
         "util/linux/scoped_ptrace_attach.cc",
         "util/linux/socket.cc",
         "util/linux/thread_info.cc",
-        "util/misc/capture_context_linux.S",
+
         "util/misc/paths_linux.cc",
         "util/misc/time_linux.cc",
         "util/posix/process_info_linux.cc",
@@ -733,10 +771,7 @@ const crashpad_util_src = CompileDefinition{
         "util/process/process_memory_sanitized.cc",
     },
     .flags = &.{
-        "-municode",
         "-std=c++17",
-        "-DCRASHPAD_ZLIB_SOURCE_EXTERNAL=1",
-        "-DZLIB_CONST",
     },
     .include_directories = &.{"."},
     .language = .cpp,
@@ -751,8 +786,6 @@ const crashpad_wer_module_src = CompileDefinition{
     .win = &.{},
     .unix = &.{},
     .language = .cpp,
-    .flags = &.{
-        "-municode",
-    },
+    .flags = &.{},
     .include_directories = &.{"."},
 };
