@@ -243,6 +243,20 @@ pub fn build(b: *std.Build) !void {
         // Cringe
         crashpad_handler.mingw_unicode_entry_point = true;
 
+        if (target.result.os.tag != .windows) {
+            var flags = std.ArrayList([]const u8).init(b.allocator);
+            try flags.appendSlice(global_flags);
+            if (target.result.abi.isMusl()) {
+                try flags.append("-DMUSL");
+            }
+
+            crashpad_handler.addCSourceFile(.{
+                .file = b.path("client/pthread_create_linux.cc"),
+                .flags = flags.items,
+                .language = .cpp,
+            });
+        }
+
         addSources(upstream_root, b, target, crashpad_handler, crashpad_handler_src);
 
         crashpad_handler.subsystem = .Windows;
@@ -539,9 +553,7 @@ const crashpad_handler_src = CompileDefinition{
         "handler/main.cc",
     },
     .win = &.{},
-    .unix = &.{
-        "client/pthread_create_linux.cc",
-    },
+    .unix = &.{},
     .language = .cpp,
     .flags = &.{},
     .include_directories = &.{},
