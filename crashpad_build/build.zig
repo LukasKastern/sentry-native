@@ -233,6 +233,10 @@ pub fn build(b: *std.Build) !void {
         crashpad_handler.linkLibrary(minichromium);
         crashpad_handler.linkLibrary(crashpad_tool_lib);
 
+        if (target.result.os.tag == .linux) {
+            crashpad_handler.linkSystemLibrary("pthread");
+        }
+
         crashpad_handler.addIncludePath(upstream.path("."));
 
         // Cringe
