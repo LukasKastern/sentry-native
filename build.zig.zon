@@ -12,8 +12,8 @@
             .path = "./crashpad_build",
         },
         .curl = .{
-            .url = "git+https://github.com/lukaskastern/curl.git?ref=boringssl#84bf2447d22f3c538167c093747752e2fc20ceb6",
-            .hash = "curl-8.13.0-mFDAWIrxAABXyAcBh7Cz0LGC7oPNvIJMSxraoAQHM02Q",
+            .url = "git+https://github.com/lukaskastern/curl.git?ref=boringssl#6659d805631ae484e3bdcd711832676fd2bc9590",
+            .hash = "curl-8.13.0-mFDAWOvxAAAlwRiuCGo4j87jBmA1j9QTE_biXP0GCgu3",
         },
     },
     .paths = .{
