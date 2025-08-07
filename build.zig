@@ -91,7 +91,19 @@ pub fn build(b: *std.Build) void {
             const with_curl = b.option(bool, "curl", "Enable curl support (Unix-like only) for backend transport (default: false)") orelse false;
             // Link libcurl only for unix-like systems.
             if (with_curl) {
-                sentry_native.linkSystemLibrary("curl");
+                const curl_dependency = b.dependency("curl", .{
+                    .target = target,
+                    .optimize = optimize,
+                    .libpsl = false,
+                    .libssh2 = false,
+                    .libidn2 = false,
+                    .nghttp2 = false,
+                    .@"disable-ldap" = true,
+                });
+
+                const lib_curl = @import("curl").artifact(curl_dependency, .lib);
+                sentry_native.linkLibrary(lib_curl);
+
                 sentry_native.addCSourceFile(.{ .file = upstream.path("src/transports/sentry_transport_curl.c"), .flags = cflags });
             } else {
                 sentry_native.addCSourceFile(.{ .file = upstream.path("src/transports/sentry_transport_none.c"), .flags = cflags });

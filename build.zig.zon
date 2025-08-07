@@ -11,6 +11,10 @@
         .crashpad = .{
             .path = "./crashpad_build",
         },
+        .curl = .{
+            .url = "git+https://github.com/allyourcodebase/curl#b699f96a989ca2ae2d62f9774f436088ed47ea03",
+            .hash = "curl-8.13.0-mFDAWCXtAAAoC5sjcLO6XRYP-ljMSSWdpiYcVnxlt5GN",
+        },
     },
     .paths = .{
         "build.zig",
