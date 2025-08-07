@@ -124,6 +124,18 @@ pub fn build(b: *std.Build) !void {
         }
 
         if (target.result.os.tag == .linux) {
+            var flags = std.ArrayList([]const u8).init(b.allocator);
+            try flags.appendSlice(global_flags);
+            if (target.result.abi.isMusl()) {
+                try flags.append("-DMUSL");
+            }
+
+            crashpad_util_lib.addCSourceFile(.{
+                .file = b.path("util/net/http_transport_libcurl.cc"),
+                .language = .cpp,
+                .flags = flags.items,
+            });
+
             const curl_dependency = b.dependency("curl", .{
                 .target = target,
                 .optimize = optimize,
@@ -748,7 +760,6 @@ const crashpad_util_src = CompileDefinition{
         "util/win/session_end_watcher.cc",
     },
     .unix = &.{
-        "util/net/http_transport_libcurl.cc",
         "util/file/directory_reader_posix.cc",
         "util/file/file_io_posix.cc",
         "util/file/filesystem_posix.cc",
