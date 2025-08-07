@@ -45,13 +45,18 @@ void *InitializeSignalStackAndStart(StartParams *params) {
 
 extern "C" {
 
+#ifdef MUSL
+int __pthread_create(pthread_t *res, const pthread_attr_t *attrp,
+                     void *(*entry)(void *), void *arg);
+#endif
+
 __attribute__((visibility("default"))) int
 pthread_create(pthread_t *thread, const pthread_attr_t *attr,
                StartRoutineType start_routine, void *arg) {
   static const crashpad::NoCfiIcall<decltype(pthread_create) *>
       next_pthread_create([]() {
 #ifdef MUSL
-        return (void *)pthread_create;
+        return (void *)__pthread_create;
 #endif
         const auto next_pthread_create = dlsym(RTLD_NEXT, "pthread_create");
         CHECK(next_pthread_create) << "dlsym: " << dlerror();
