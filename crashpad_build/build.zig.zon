@@ -21,8 +21,8 @@
             .hash = "N-V-__8AABkePgBp0WGwridKPlToXWkvkC4LvH64XH7DaBf3",
         },
         .curl = .{
-            .url = "git+https://github.com/allyourcodebase/curl#b699f96a989ca2ae2d62f9774f436088ed47ea03",
-            .hash = "curl-8.13.0-mFDAWCXtAAAoC5sjcLO6XRYP-ljMSSWdpiYcVnxlt5GN",
+            .url = "git+https://github.com/lukasKastern/curl#309daf49771bbe7c5fea26f7daf811a6e4a26fc8",
+            .hash = "curl-8.13.0-mFDAWMPxAAANKPJiDKTHGoOIfNi3DkR_DQfcL7R3la8E",
         },
     },
     .paths = .{

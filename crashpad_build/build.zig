@@ -132,6 +132,7 @@ pub fn build(b: *std.Build) !void {
                 .libidn2 = false,
                 .nghttp2 = false,
                 .@"disable-ldap" = true,
+                .@"use-boringssl" = true,
             });
 
             const lib_curl = @import("curl").artifact(curl_dependency, .lib);
