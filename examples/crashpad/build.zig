@@ -7,6 +7,7 @@ pub fn build(b: *std.Build) void {
     const sentry = b.dependency("sentry_native", .{
         .target = target,
         .optimize = optimize,
+        .backend = .crashpad,
     });
 
     const exe_mod = b.createModule(.{
@@ -32,4 +33,7 @@ pub fn build(b: *std.Build) void {
     }
     const run_step = b.step("run", "Run the app");
     run_step.dependOn(&run_cmd.step);
+
+    // Install crashpad binaries
+    @import("sentry_native").installCrashpad(b, &exe.step, sentry, target);
 }

@@ -14,14 +14,14 @@ First add the dependencies to your project
 > zig fetch --save git+https://github.com/olksdr/sentry-native.git
 ```
 
-And after you can import `sentry_native` in yout `build.zig`. _Note_: the dash ("-") is replaced with underscore ("_") in the name.
+And after you can import `sentry_native` in your `build.zig`. _Note_: the dash ("-") is replaced with underscore ("_") in the name.
 
 ```zig
 
 const sentry_native = b.dependency("sentry_native", .{
     .target = target,
     .optimize = optimize,
-    // Only if you run on Unix-like system you might want to link with libcurl (deafult is "false").
+    // Only if you run on Unix-like system you might want to link with libcurl (default is "false").
     .curl = true,
     // Only if you are on Windows (default "false").
     .winhttp = true,
@@ -33,6 +33,9 @@ exe.linkLibrary(sentry_native.artifact("sentry"));
 // Add the imports to the root module, so you can use those in your code, e.g.:
 // const sentry = @import("sentry");
 exe.root_module.addImport("sentry", sentry_native.module("sentry"));
+
+// Install crashpad binaries
+@import("sentry_native").installCrashpad(b, &exe.step, sentry, target);
 
 ```
 
@@ -52,5 +55,4 @@ Currently only `none` or `inproc` (enabled by default) backends are supported.
 
 As part of this build the following items still on the list:
 
-- [ ] Support Crashpad backend.
 - [ ] Support Breakpad backend.

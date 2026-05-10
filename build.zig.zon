@@ -2,11 +2,20 @@
     .name = .sentry_native,
     .version = "0.2.0",
     .fingerprint = 0x8c2691ae4ce6c4cf,
-    .minimum_zig_version = "0.15.0",
+    .minimum_zig_version = "0.16.0",
     .dependencies = .{
         .@"sentry-native" = .{
             .url = "git+https://github.com/getsentry/sentry-native.git#ccef7125b3783210f44ee6b100df7278e6ba3eff",
             .hash = "N-V-__8AAJmoHgAPxgAObxk1ekBBdb0LSAf71bFKKpgSq5aS",
+        },
+        .crashpad = .{
+            .url = "git+https://github.com/LukasKastern/crashpad.git#84151ec7b7e04e690d81c2866d66da06a8935324",
+            .hash = "crashpad-0.1.0-tVD9TQeNAAAnmV4gLisVGynQo44zGj3vv21SjMykbV_k",
+            .lazy = true,
+        },
+        .curl = .{
+            .url = "git+https://github.com/lukaskastern/curl.git?ref=boringssl#79c7db96e951a5ddbb0180c1412b1d5a2022e1ad",
+            .hash = "curl-8.18.0-mFDAWCH5AADu_sgXOXIw6_ZDSmqLsybYPS3BkU6gDRZY",
         },
     },
     .paths = .{
