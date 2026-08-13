@@ -21,6 +21,9 @@ pub fn build(b: *std.Build) void {
         .root_module = exe_mod,
     });
 
+    // Ensure a build id is set so the debug symbols can be mapped to the binary
+    exe.build_id = .fast;
+
     exe.root_module.linkLibrary(sentry.artifact("sentry"));
     exe.root_module.addImport("sentry", sentry.module("sentry"));
 

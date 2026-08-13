@@ -9,13 +9,13 @@
             .hash = "N-V-__8AAJmoHgAPxgAObxk1ekBBdb0LSAf71bFKKpgSq5aS",
         },
         .crashpad = .{
-            .url = "git+https://github.com/LukasKastern/crashpad.git#84151ec7b7e04e690d81c2866d66da06a8935324",
-            .hash = "crashpad-0.1.0-tVD9TQeNAAAnmV4gLisVGynQo44zGj3vv21SjMykbV_k",
+            .url = "git+https://github.com/LukasKastern/crashpad.git#0320cea53a8e8577ba3957bad81f7b204a327921",
+            .hash = "crashpad-0.1.0-tVD9TSyFAADbuydbi3QuPm4pzfss78949pVY9sam1c4D",
             .lazy = true,
         },
         .curl = .{
-            .url = "git+https://github.com/lukaskastern/curl.git?ref=boringssl#79c7db96e951a5ddbb0180c1412b1d5a2022e1ad",
-            .hash = "curl-8.18.0-mFDAWCH5AADu_sgXOXIw6_ZDSmqLsybYPS3BkU6gDRZY",
+            .url = "git+https://github.com/lukaskastern/curl.git?ref=boringssl#bc02ae47be32936da66cabfd8ed6cf1ba1d09f19",
+            .hash = "curl-8.18.0-mFDAWPf7AACO9V1eofR62eABcrB1QQtT1a-DN5XumC53",
         },
     },
     .paths = .{
