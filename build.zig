@@ -252,12 +252,23 @@ pub const sentry_src: []const []const u8 = &.{
 
 // Install crashpad
 // Makes the given step a dependency of the installation
-pub fn installCrashpad(target_build: *std.Build, step: *std.Build.Step, sentry: *std.Build.Dependency, target: std.Build.ResolvedTarget) void {
-    const install_crashpad = target_build.addInstallArtifact(sentry.artifact("crashpad_handler"), .{});
-    step.dependOn(&install_crashpad.step);
+pub fn installCrashpad(
+    target_build: *std.Build,
+    step: *std.Build.Step,
+    sentry: *std.Build.Dependency,
+    target: std.Build.ResolvedTarget,
+    optimize: std.builtin.OptimizeMode,
+) void {
+    if (sentry.builder.lazyDependency("crashpad", .{
+        .target = target,
+        .optimize = optimize,
+    }) != null) {
+        const install_crashpad = target_build.addInstallArtifact(sentry.artifact("crashpad_handler"), .{});
+        step.dependOn(&install_crashpad.step);
 
-    if (target.result.os.tag == .windows) {
-        const install_wer = target_build.addInstallArtifact(sentry.artifact("crashpad_wer"), .{});
-        step.dependOn(&install_wer.step);
+        if (target.result.os.tag == .windows) {
+            const install_wer = target_build.addInstallArtifact(sentry.artifact("crashpad_wer"), .{});
+            step.dependOn(&install_wer.step);
+        }
     }
 }

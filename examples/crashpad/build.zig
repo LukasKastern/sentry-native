@@ -38,5 +38,11 @@ pub fn build(b: *std.Build) void {
     run_step.dependOn(&run_cmd.step);
 
     // Install crashpad binaries
-    @import("sentry_native").installCrashpad(b, &exe.step, sentry, target);
+    @import("sentry_native").installCrashpad(
+        b,
+        &exe.step,
+        sentry,
+        target,
+        optimize,
+    );
 }
