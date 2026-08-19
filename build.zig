@@ -101,23 +101,23 @@ pub fn build(b: *std.Build) void {
             sentry_native.root_module.addCSourceFile(.{ .file = upstream.path("src/backends/sentry_backend_inproc.c"), .flags = cflags });
         },
         .crashpad => {
-            const crashpad = b.lazyDependency("crashpad", .{
+            if (b.lazyDependency("crashpad", .{
                 .target = target,
                 .optimize = optimize,
-            }) orelse @panic("Failed to resolve crashpad");
+            })) |crashpad| {
+                sentry_native.root_module.addCSourceFile(.{ .file = upstream.path("src/backends/sentry_backend_crashpad.cpp"), .flags = cflags });
+                sentry_native.is_linking_libcpp = true;
 
-            sentry_native.root_module.addCSourceFile(.{ .file = upstream.path("src/backends/sentry_backend_crashpad.cpp"), .flags = cflags });
-            sentry_native.is_linking_libcpp = true;
+                sentry_native.root_module.linkLibrary(crashpad.artifact("crashpad_client"));
 
-            sentry_native.root_module.linkLibrary(crashpad.artifact("crashpad_client"));
+                // Install crashpad_handler
+                const crashpad_handler = crashpad.artifact("crashpad_handler");
+                b.installArtifact(crashpad_handler);
 
-            // Install crashpad_handler
-            const crashpad_handler = crashpad.artifact("crashpad_handler");
-            b.installArtifact(crashpad_handler);
-
-            if (target.result.os.tag == .windows) {
-                const wer_module = crashpad.artifact("crashpad_wer");
-                b.installArtifact(wer_module);
+                if (target.result.os.tag == .windows) {
+                    const wer_module = crashpad.artifact("crashpad_wer");
+                    b.installArtifact(wer_module);
+                }
             }
         },
     }
