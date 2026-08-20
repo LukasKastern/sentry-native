@@ -176,6 +176,7 @@ pub fn build(b: *std.Build) void {
             // Enable winhttp support if option provided otherwise there will be no transport.
             if (with_winhttp) {
                 sentry_native.root_module.addCSourceFile(.{ .file = upstream.path("src/transports/sentry_transport_winhttp.c"), .flags = cflags });
+                sentry_native.root_module.linkSystemLibrary("winhttp", .{});
             } else {
                 sentry_native.root_module.addCSourceFile(.{ .file = upstream.path("src/transports/sentry_transport_none.c"), .flags = cflags });
             }
