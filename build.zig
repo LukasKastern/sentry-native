@@ -185,21 +185,26 @@ pub fn build(b: *std.Build) void {
         else => @panic("Unsupported build target."),
     }
 
-    // Translate C header file to zig-like module file.
-    const sentry_headers = b.addTranslateC(.{
-        .root_source_file = upstream.path("include/sentry.h"),
+    const translator = b.dependency("translate_c", .{
+        .target = b.graph.host,
+        .optimize = optimize,
+    });
+
+    // An abstraction to make using translate-c as simple as possible.
+    const Translator = @import("translate_c").Translator;
+
+    // Add translator
+    const t: Translator = .init(translator, .{
+        .c_source_file = upstream.path("include/sentry.h"),
         .target = target,
         .optimize = optimize,
-        .link_libc = true,
     });
 
     if (linkage == .static) {
-        // Since we are building a static library, we should set SENTRY_BUILD_STATIC=1.
-        sentry_headers.defineCMacro("SENTRY_BUILD_STATIC", "1");
+        t.defineCMacro("SENTRY_BUILD_STATIC", "1");
     }
 
-    // Create an importable module for this library.
-    _ = b.addModule("sentry", .{ .root_source_file = sentry_headers.createModule().root_source_file });
+    b.modules.put(b.graph.arena, b.dupe("sentry"), t.mod) catch @panic("OOM");
 }
 
 // The Windows specific source files.
