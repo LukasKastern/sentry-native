@@ -9,8 +9,8 @@
             .hash = "N-V-__8AAJmoHgAPxgAObxk1ekBBdb0LSAf71bFKKpgSq5aS",
         },
         .crashpad = .{
-            .url = "git+https://github.com/LukasKastern/crashpad.git#ad86bc5bbbdff63372921cd9d7e08272abcfdacb",
-            .hash = "crashpad-0.1.0-tVD9TcyPAABtYZ0Fp3yUAKAPswjvn79gJ8nHbx6p08LM",
+            .url = "git+https://github.com/LukasKastern/crashpad.git#d2a54f327d6a216e92066061268ad561490f7924",
+            .hash = "crashpad-0.1.0-tVD9TR2QAACvLzfiIte55B60J_Av08fD1oqesvdBtIyn",
             .lazy = true,
         },
         .curl = .{
