@@ -106,7 +106,7 @@ pub fn build(b: *std.Build) void {
                 .optimize = optimize,
             })) |crashpad| {
                 sentry_native.root_module.addCSourceFile(.{ .file = upstream.path("src/backends/sentry_backend_crashpad.cpp"), .flags = cflags });
-                sentry_native.is_linking_libcpp = true;
+                sentry_native.root_module.link_libcpp = true;
 
                 sentry_native.root_module.linkLibrary(crashpad.artifact("crashpad_client"));
 

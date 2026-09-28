@@ -9,17 +9,17 @@
             .hash = "N-V-__8AAJmoHgAPxgAObxk1ekBBdb0LSAf71bFKKpgSq5aS",
         },
         .crashpad = .{
-            .url = "git+https://github.com/LukasKastern/crashpad.git#90e276e19fdbe1657e4476469febb19f54df7768",
-            .hash = "crashpad-0.1.0-tVD9TdePAADwiaVkNmKzHRU6F-dXub_Vy77V7BurcxxH",
+            .url = "git+https://github.com/LukasKastern/crashpad.git#8e919cdb91e09058037ec0ec5692c18a1261dcab",
+            .hash = "crashpad-0.1.0-tVD9TcyPAAC_GNXY_z-HtdAr2lewMlVVj3qZxBJIOAoL",
             .lazy = true,
         },
         .curl = .{
-            .url = "git+https://github.com/allyourcodebase/curl.git#c59c65cd767951abfe9ac0b1e075e64733953361",
-            .hash = "curl-8.18.0-mFDAWPf7AACO9V1eofR62eABcrB1QQtT1a-DN5XumC53",
+            .url = "git+https://github.com/allyourcodebase/curl.git#d9a070962525a2761c224812c872d2be6204d4d5",
+            .hash = "curl-8.18.0-mFDAWL_7AABpiXlqSst0UbUWOh2WvRi4mtOsBgLvtiZV",
         },
         .translate_c = .{
-            .url = "git+https://codeberg.org/ziglang/translate-c?ref=zig-0.16.x#6fe0ffc4549f15c5f2d9432c2b4460ba90ff85ac",
-            .hash = "translate_c-1.0.0-Q_BUWo_5BgD4flHdUhA31zOz0XvZk9k7lQv1ouzyNXj2",
+            .url = "git+https://codeberg.org/ziglang/translate-c?ref=zig-0.16.x#0944784e197e419433a21d4b28bfc65e48e7d514",
+            .hash = "translate_c-0.0.0-Q_BUWo5NBwBs3K0a-B1XbxEF3gFdTb75VgOE0FL-2qKL",
         },
     },
     .paths = .{
