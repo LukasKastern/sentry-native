@@ -14,8 +14,8 @@
             .lazy = true,
         },
         .curl = .{
-            .url = "git+https://github.com/lukaskastern/curl.git#f9945b248afb95ac77f86300f7358fde115198d2",
-            .hash = "curl-8.22.0-mFDAWHX7AACZrrg8Ug68sos2OuE27N38kuabzm9lxQOi",
+            .url = "git+https://github.com/lukaskastern/curl.git#98d9172fd7b3091cda0c6adcafb00252024bfb33",
+            .hash = "curl-8.22.0-mFDAWHX7AADLLP9BiqHa-DmRtxmiCDz3YoN8TVOxViTN",
         },
         .translate_c = .{
             .url = "git+https://codeberg.org/ziglang/translate-c#02ff0c523fb92a38939b04d0145c4a9602a74d56",
