@@ -70,6 +70,12 @@ pub fn build(b: *std.Build) void {
         .linkage = linkage,
     });
 
+    // Don't sanitize C code in safe
+    // Otherwise we will trap on function mismatches which sentry explicitly uses
+    if (optimize == .safe) {
+        sentry_native.root_module.sanitize_c = .off;
+    }
+
     if (linkage == .static) {
         // Since the library build as static, we should define the macro for the compiler.
         sentry_native.root_module.addCMacro("SENTRY_BUILD_STATIC", "1");
